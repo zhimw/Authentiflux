@@ -7,6 +7,7 @@ AuthentiFlux is a decentralized platform that uses NFT technology to create digi
 ## Overview
 
 AuthentiFlux bridges the physical and digital worlds by:
+
 - Creating NFT "passports" for verified luxury items
 - Providing immutable proof of authenticity on the blockchain
 - Tracking ownership history through transparent transfers
@@ -26,12 +27,14 @@ User/Verifier → Backend API (Node.js + Ethers.js)
 ### Components
 
 1. **Smart Contract (Solidity)**
+
    - ERC-721 NFT standard for luxury goods
    - Minting and transfer logic
    - On-chain authentication proof and ownership history
    - Verifier authorization system
 
 2. **Backend API (Node.js + Ethers.js)**
+
    - RESTful API for blockchain interactions
    - Minting interface for verified items
    - Item verification and query endpoints
@@ -51,6 +54,12 @@ User/Verifier → Backend API (Node.js + Ethers.js)
 - **Blockchain Library**: Ethers.js v6
 - **Network**: Polygon Amoy Testnet
 - **Testing**: Hardhat + Chai
+
+## 🚀 Quick Start
+
+Want to get started immediately? Check out our [Quick Start Guide](QUICKSTART.md) to get AuthentiFlux running locally in 5 minutes!
+
+For detailed setup and deployment instructions, continue reading below.
 
 ## Prerequisites
 
@@ -77,6 +86,7 @@ npm install
 ```
 
 This will install all required packages including:
+
 - Hardhat and plugins
 - OpenZeppelin contracts
 - Ethers.js
@@ -136,6 +146,7 @@ npm run deploy:amoy
 ```
 
 Expected output:
+
 ```
 🚀 Deploying LuxuryGoodsNFT contract...
 📝 Deploying with account: 0x...
@@ -147,6 +158,7 @@ Expected output:
 ```
 
 **Important**: Copy the contract address and add it to your `.env` file:
+
 ```env
 CONTRACT_ADDRESS=0x...
 ```
@@ -161,15 +173,15 @@ The API server will start on `http://localhost:3000` with the following endpoint
 
 #### API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Health check and API info |
-| GET | `/api/contract/info` | Get contract information |
-| POST | `/api/items/mint` | Mint new authenticated item |
-| GET | `/api/items/verify/:chipId` | Verify item by chip ID |
-| GET | `/api/items/:tokenId` | Get item details by token ID |
-| POST | `/api/verifiers/authorize` | Authorize a verifier |
-| GET | `/api/verifiers/:address` | Check verifier authorization |
+| Method | Endpoint                    | Description                  |
+| ------ | --------------------------- | ---------------------------- |
+| GET    | `/`                         | Health check and API info    |
+| GET    | `/api/contract/info`        | Get contract information     |
+| POST   | `/api/items/mint`           | Mint new authenticated item  |
+| GET    | `/api/items/verify/:chipId` | Verify item by chip ID       |
+| GET    | `/api/items/:tokenId`       | Get item details by token ID |
+| POST   | `/api/verifiers/authorize`  | Authorize a verifier         |
+| GET    | `/api/verifiers/:address`   | Check verifier authorization |
 
 ### Step 4: Test the System
 
@@ -180,6 +192,7 @@ npm test
 ```
 
 This runs the full test suite covering:
+
 - Contract deployment
 - Verifier authorization
 - NFT minting
@@ -193,6 +206,7 @@ npx hardhat run scripts/mint-test.js --network amoy
 ```
 
 This will:
+
 1. Mint a test luxury item (Louis Vuitton bag)
 2. Verify the item by chip ID
 3. Display all item details
@@ -234,6 +248,7 @@ npx hardhat run scripts/verify-item.js --network amoy NFC-1234567890
 ```
 
 Expected output:
+
 ```
 ✅ Item is authenticated!
 ========================
@@ -284,7 +299,7 @@ For local testing without deploying to testnet:
 npm run node
 ```
 
-This starts a local blockchain at `http://127.0.0.1:8545`
+**Keep this terminal running!** You'll see a list of test accounts. This starts a local blockchain at `http://127.0.0.1:8545`
 
 ### 2. Deploy to Local Network (in a new terminal)
 
@@ -292,18 +307,53 @@ This starts a local blockchain at `http://127.0.0.1:8545`
 npm run deploy:localhost
 ```
 
+Copy the contract address from the output (e.g., `0x5FbDB2315678afecb367f032d93F642f64180aa3`)
+
 ### 3. Configure Backend for Local Network
 
-Update `.env`:
-```env
+Create or update `.env`:
+
+```bash
+cat > .env << EOF
 POLYGON_AMOY_RPC_URL=http://127.0.0.1:8545
-CONTRACT_ADDRESS=<local_contract_address>
+CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
+PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+PORT=3000
+NODE_ENV=development
+EOF
 ```
 
-### 4. Start Backend
+**Replace** `CONTRACT_ADDRESS` with your actual contract address from step 2.
+
+### 4. Start Backend (in a new terminal)
 
 ```bash
 npm run backend
+```
+
+### 5. Test It!
+
+```bash
+# Test minting an item
+npx hardhat run scripts/mint-test.js --network localhost
+```
+
+You should see:
+
+```
+✅ Transaction confirmed
+🎫 Token ID: 1
+✅ Test completed successfully!
+```
+
+### 6. Test the API
+
+```bash
+# Health check
+curl http://localhost:3000/
+
+# Verify the minted item (use the chip ID from the test output)
+curl http://localhost:3000/api/items/verify/NFC-[timestamp]
 ```
 
 ## Project Structure
@@ -335,11 +385,13 @@ Authentiflux/
 ### Complete Authentication Flow
 
 1. **Authentication Partner Verifies Item**
+
    - Physical inspection of luxury item
    - Confirms authenticity
    - Attaches NFC/QR chip to item
 
 2. **Mint NFT Passport**
+
    ```bash
    curl -X POST http://localhost:3000/api/items/mint \
      -H "Content-Type: application/json" \
@@ -353,14 +405,17 @@ Authentiflux/
    ```
 
 3. **Customer Receives Item**
+
    - Item has physical chip attached
    - NFT is in customer's wallet
    - Digital and physical linked
 
 4. **Verification by Anyone**
+
    ```bash
    curl http://localhost:3000/api/items/verify/NFC-HERMES-001
    ```
+
    - Scan chip with phone
    - Instant verification from blockchain
    - View full provenance history
@@ -396,25 +451,68 @@ Authentiflux/
 ### Common Issues
 
 **1. "Insufficient funds" error**
-- Solution: Get test MATIC from the faucet
+
+- For local: You should have funds automatically
+- For testnet: Get test MATIC from the faucet
 
 **2. "Contract not initialized" in backend**
+
 - Solution: Ensure CONTRACT_ADDRESS is set in .env
 - Solution: Check that you've deployed the contract
 
 **3. "Not authorized to mint" error**
+
 - Solution: Authorize your address as a verifier
 - Use the `/api/verifiers/authorize` endpoint
 
-**4. "Network connection failed"**
+**4. "Network connection failed" / "Connection refused"**
+
 - Solution: Check your RPC URL in .env
 - Solution: Verify internet connection
+- For local: Make sure the Hardhat node is running (`npm run node`)
+- For local: Check that the RPC URL in .env matches (http://127.0.0.1:8545)
 - Solution: Try a different RPC endpoint
 
-**5. Contract compilation errors**
+**5. Contract compilation errors / "Cannot find module"**
+
 - Solution: Run `npm install` again
 - Solution: Clear cache: `npx hardhat clean`
-- Solution: Delete `node_modules` and reinstall
+- Solution: Delete `node_modules` and `package-lock.json`, then reinstall:
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### Reset if Stuck
+
+If you're stuck with local development:
+
+```bash
+# Stop all (Ctrl+C in each terminal)
+# Restart Hardhat node
+npm run node
+# Redeploy (in new terminal)
+npm run deploy:localhost
+# Update .env with new contract address
+# Restart backend
+npm run backend
+```
+
+### 💡 Tips for Development
+
+1. **Keep three terminals open:**
+
+   - Terminal 1: Hardhat node (`npm run node`)
+   - Terminal 2: Backend server (`npm run backend`)
+   - Terminal 3: Testing and commands
+
+2. **Watch the Hardhat node terminal** - it shows all blockchain activity
+
+3. **Use the scripts** - they're faster than manual API calls:
+   - `scripts/mint-test.js` - Quick minting test
+   - `scripts/verify-item.js` - Verify any item
+   - `scripts/check-balance.js` - Check wallet balance
 
 ## Additional Resources
 
@@ -435,10 +533,10 @@ Authentiflux/
 - **Insurance Integration**: Blockchain-verified coverage
 - **Fractional Ownership**: NFT fractionalization for high-value items
 
-
 ## Important Notes
 
 ### Security Considerations
+
 - This is a testnet implementation for educational purposes
 - Never use testnet private keys for mainnet
 - Always use environment variables for sensitive data
@@ -452,4 +550,3 @@ For questions or issues, please open an issue in the GitHub repository.
 ---
 
 Built with ❤️ for secure luxury goods authentication on the blockchain.
-
