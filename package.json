@@ -1,0 +1,38 @@
+{
+  "name": "authentiflux",
+  "version": "1.0.0",
+  "description": "Blockchain-based luxury goods authentication system using NFTs",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:amoy": "hardhat run scripts/deploy.js --network amoy",
+    "deploy:localhost": "hardhat run scripts/deploy.js --network localhost",
+    "node": "hardhat node",
+    "backend": "node backend/server.js",
+    "backend:dev": "nodemon backend/server.js"
+  },
+  "keywords": [
+    "blockchain",
+    "NFT",
+    "luxury",
+    "authentication",
+    "polygon"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.9.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0",
+    "nodemon": "^3.0.2"
+  }
+}
+
