@@ -24,8 +24,19 @@ contract LuxuryGoodsNFT is ERC721, ERC721URIStorage, Ownable {
         bool isAuthenticated;
     }
 
+    // Struct to store transfer history
+    struct TransferRecord {
+        address from;
+        address to;
+        uint256 timestamp;
+        uint256 price; // Price in wei (0 if not a sale)
+    }
+
     // Mapping from token ID to luxury item details
     mapping(uint256 => LuxuryItem) public luxuryItems;
+    
+    // Mapping from token ID to transfer history
+    mapping(uint256 => TransferRecord[]) private transferHistory;
     
     // Mapping from chip ID to token ID (to prevent duplicate minting)
     mapping(string => uint256) public chipIdToTokenId;
@@ -46,6 +57,14 @@ contract LuxuryGoodsNFT is ERC721, ERC721URIStorage, Ownable {
         address indexed from,
         address indexed to,
         uint256 timestamp
+    );
+    
+    event ItemTransferredWithPrice(
+        uint256 indexed tokenId,
+        address indexed from,
+        address indexed to,
+        uint256 timestamp,
+        uint256 price
     );
     
     event VerifierAuthorized(address indexed verifier, bool status);
@@ -109,6 +128,14 @@ contract LuxuryGoodsNFT is ERC721, ERC721URIStorage, Ownable {
         // Map chip ID to token ID
         chipIdToTokenId[chipId] = newTokenId;
 
+        // Record initial "transfer" to first owner with timestamp
+        transferHistory[newTokenId].push(TransferRecord({
+            from: address(0),
+            to: itemOwner,
+            timestamp: block.timestamp,
+            price: 0
+        }));
+
         emit ItemAuthenticated(newTokenId, chipId, msg.sender, itemOwner);
 
         return newTokenId;
@@ -163,6 +190,62 @@ contract LuxuryGoodsNFT is ERC721, ERC721URIStorage, Ownable {
      */
     function getTotalAuthenticatedItems() external view returns (uint256) {
         return _tokenIds;
+    }
+
+    /**
+     * @dev Transfer item with price recording
+     * @param from Current owner address
+     * @param to New owner address
+     * @param tokenId Token ID to transfer
+     * @param price Sale price in wei (0 if gift/no sale)
+     */
+    function transferWithPrice(
+        address from,
+        address to,
+        uint256 tokenId,
+        uint256 price
+    ) external {
+        require(ownerOf(tokenId) == from, "From address is not the owner");
+        require(msg.sender == from || getApproved(tokenId) == msg.sender || isApprovedForAll(from, msg.sender),
+            "Caller is not owner nor approved");
+        require(to != address(0), "Invalid recipient address");
+
+        // Record the transfer with price
+        transferHistory[tokenId].push(TransferRecord({
+            from: from,
+            to: to,
+            timestamp: block.timestamp,
+            price: price
+        }));
+
+        // Perform the transfer
+        _transfer(from, to, tokenId);
+
+        emit ItemTransferredWithPrice(tokenId, from, to, block.timestamp, price);
+    }
+
+    /**
+     * @dev Get transfer history for a token
+     * @param tokenId The token ID
+     * @return history Array of transfer records
+     */
+    function getTransferHistory(uint256 tokenId) external view returns (TransferRecord[] memory) {
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
+        return transferHistory[tokenId];
+    }
+
+    /**
+     * @dev Get the acquisition timestamp for current owner
+     * @param tokenId The token ID
+     * @return timestamp When current owner acquired the item
+     */
+    function getCurrentOwnerAcquisitionTime(uint256 tokenId) external view returns (uint256) {
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
+        TransferRecord[] memory history = transferHistory[tokenId];
+        if (history.length == 0) {
+            return 0;
+        }
+        return history[history.length - 1].timestamp;
     }
 
     /**

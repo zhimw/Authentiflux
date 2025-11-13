@@ -236,6 +236,88 @@ app.get("/api/items/:tokenId", async (req, res) => {
   }
 });
 
+// Transfer item with price recording
+app.post("/api/items/transfer", async (req, res) => {
+  try {
+    if (!contract || !signer) {
+      return res.status(503).json({ error: "Contract or signer not initialized" });
+    }
+
+    const { from, to, tokenId, price } = req.body;
+
+    // Validate required fields
+    if (!from || !to || !tokenId) {
+      return res.status(400).json({
+        error: "Missing required fields: from, to, tokenId"
+      });
+    }
+
+    // Price is optional, default to 0 (gift/non-sale transfer)
+    const transferPrice = price ? ethers.parseEther(price.toString()) : 0n;
+
+    console.log(`🔄 Transferring token ${tokenId} from ${from} to ${to}...`);
+    if (price) {
+      console.log(`💰 Sale price: ${price} ETH`);
+    }
+
+    const tx = await contract.transferWithPrice(from, to, tokenId, transferPrice);
+    console.log(`⏳ Transaction submitted: ${tx.hash}`);
+    const receipt = await tx.wait();
+    console.log(`✅ Transaction confirmed in block ${receipt.blockNumber}`);
+
+    // Get updated ownership info
+    const newOwner = await contract.ownerOf(tokenId);
+    const acquisitionTime = await contract.getCurrentOwnerAcquisitionTime(tokenId);
+
+    res.json({
+      success: true,
+      message: "Item transferred successfully",
+      transactionHash: tx.hash,
+      blockNumber: receipt.blockNumber,
+      from,
+      to,
+      newOwner,
+      tokenId: tokenId.toString(),
+      price: price ? price.toString() : "0",
+      timestamp: new Date(Number(acquisitionTime) * 1000).toISOString()
+    });
+  } catch (error) {
+    console.error("❌ Transfer error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get transfer history for an item
+app.get("/api/items/:tokenId/history", async (req, res) => {
+  try {
+    if (!contract) {
+      return res.status(503).json({ error: "Contract not initialized" });
+    }
+
+    const { tokenId } = req.params;
+
+    const history = await contract.getTransferHistory(tokenId);
+
+    // Format the history
+    const formattedHistory = history.map((record, index) => ({
+      transferNumber: index + 1,
+      from: record.from === ethers.ZeroAddress ? "Minted" : record.from,
+      to: record.to,
+      timestamp: new Date(Number(record.timestamp) * 1000).toISOString(),
+      price: ethers.formatEther(record.price),
+      priceWei: record.price.toString()
+    }));
+
+    res.json({
+      tokenId,
+      totalTransfers: formattedHistory.length,
+      history: formattedHistory
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Authorize a verifier
 app.post("/api/verifiers/authorize", async (req, res) => {
   try {
@@ -297,13 +379,15 @@ async function startServer() {
   app.listen(PORT, () => {
     console.log(`🚀 AuthentiFlux API server running on http://localhost:${PORT}`);
     console.log(`📚 API Documentation:`);
-    console.log(`   GET  /                          - Health check`);
-    console.log(`   GET  /api/contract/info         - Contract information`);
-    console.log(`   POST /api/items/mint            - Mint new authenticated item`);
-    console.log(`   GET  /api/items/verify/:chipId  - Verify item by chip ID`);
-    console.log(`   GET  /api/items/:tokenId        - Get item details by token ID`);
-    console.log(`   POST /api/verifiers/authorize   - Authorize a verifier`);
-    console.log(`   GET  /api/verifiers/:address    - Check verifier status\n`);
+    console.log(`   GET  /                            - Health check`);
+    console.log(`   GET  /api/contract/info           - Contract information`);
+    console.log(`   POST /api/items/mint              - Mint new authenticated item`);
+    console.log(`   GET  /api/items/verify/:chipId    - Verify item by chip ID`);
+    console.log(`   GET  /api/items/:tokenId          - Get item details by token ID`);
+    console.log(`   POST /api/items/transfer          - Transfer item with price recording`);
+    console.log(`   GET  /api/items/:tokenId/history  - Get transfer history for item`);
+    console.log(`   POST /api/verifiers/authorize     - Authorize a verifier`);
+    console.log(`   GET  /api/verifiers/:address      - Check verifier status\n`);
   });
 }
 

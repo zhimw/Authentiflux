@@ -175,7 +175,109 @@ curl http://localhost:3000/api/items/1
 
 ---
 
-### 6. Authorize Verifier
+### 6. Transfer Item with Price Recording
+
+**POST /api/items/transfer**
+
+Transfer an NFT from one owner to another, recording the transaction details including optional sale price.
+
+```bash
+curl -X POST http://localhost:3000/api/items/transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+    "to": "0x1234567890123456789012345678901234567890",
+    "tokenId": "1",
+    "price": "2.5"
+  }'
+```
+
+**Request Body:**
+```json
+{
+  "from": "0x...",       // Current owner address (must match actual owner)
+  "to": "0x...",         // New owner address
+  "tokenId": "1",        // Token ID to transfer
+  "price": "2.5"         // Optional: Sale price in ETH (omit or use 0 for gifts)
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Item transferred successfully",
+  "transactionHash": "0x...",
+  "blockNumber": 12347,
+  "from": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+  "to": "0x1234567890123456789012345678901234567890",
+  "newOwner": "0x1234567890123456789012345678901234567890",
+  "tokenId": "1",
+  "price": "2.5",
+  "timestamp": "2025-11-08T15:30:00.000Z"
+}
+```
+
+**Example - Gift Transfer (No Price):**
+```bash
+curl -X POST http://localhost:3000/api/items/transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+    "to": "0x1234567890123456789012345678901234567890",
+    "tokenId": "1"
+  }'
+```
+
+---
+
+### 7. Get Transfer History
+
+**GET /api/items/:tokenId/history**
+
+Retrieve the complete transfer history for an item, including all previous owners, timestamps, and sale prices.
+
+```bash
+curl http://localhost:3000/api/items/1/history
+```
+
+**Response:**
+```json
+{
+  "tokenId": "1",
+  "totalTransfers": 3,
+  "history": [
+    {
+      "transferNumber": 1,
+      "from": "Minted",
+      "to": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+      "timestamp": "2025-11-08T10:00:00.000Z",
+      "price": "0.0",
+      "priceWei": "0"
+    },
+    {
+      "transferNumber": 2,
+      "from": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+      "to": "0x1234567890123456789012345678901234567890",
+      "timestamp": "2025-11-08T15:30:00.000Z",
+      "price": "2.5",
+      "priceWei": "2500000000000000000"
+    },
+    {
+      "transferNumber": 3,
+      "from": "0x1234567890123456789012345678901234567890",
+      "to": "0xABCDEF1234567890ABCDEF1234567890ABCDEF12",
+      "timestamp": "2025-11-08T18:45:00.000Z",
+      "price": "3.0",
+      "priceWei": "3000000000000000000"
+    }
+  ]
+}
+```
+
+---
+
+### 8. Authorize Verifier
 
 **POST /api/verifiers/authorize**
 
@@ -208,7 +310,7 @@ curl -X POST http://localhost:3000/api/verifiers/authorize \
 
 ---
 
-### 7. Check Verifier Authorization
+### 9. Check Verifier Authorization
 
 **GET /api/verifiers/:address**
 
@@ -226,9 +328,11 @@ curl http://localhost:3000/api/verifiers/0x1234567890123456789012345678901234567
 
 ---
 
-## Complete Workflow Example
+## Complete Workflow Examples
 
-### Scenario: Authentication Partner Verifies a Hermès Bag
+### Example 1: Complete Lifecycle with Resale
+
+#### Scenario: Hermès Bag Authentication and Resale
 
 #### Step 1: Authorize the Authentication Partner
 
@@ -262,14 +366,46 @@ curl -X POST http://localhost:3000/api/items/mint \
 curl http://localhost:3000/api/items/verify/NFC-HERMES-20241108-001
 ```
 
-#### Step 4: Later, Buyer Wants to Verify Before Purchase
+#### Step 4: Customer Resells to New Buyer
 
 ```bash
-# Scan chip during inspection
+# Transfer with price
+curl -X POST http://localhost:3000/api/items/transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from": "0xCustomerAddress",
+    "to": "0xNewBuyerAddress",
+    "tokenId": "1",
+    "price": "15000"
+  }'
+```
+
+#### Step 5: New Buyer Verifies Complete History
+
+```bash
+# Verify current authenticity
 curl http://localhost:3000/api/items/verify/NFC-HERMES-20241108-001
 
-# Check full details
-curl http://localhost:3000/api/items/1
+# View complete ownership and price history
+curl http://localhost:3000/api/items/1/history
+```
+
+---
+
+### Example 2: Gift Transfer (No Sale Price)
+
+```bash
+# Transfer as gift
+curl -X POST http://localhost:3000/api/items/transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from": "0xCurrentOwner",
+    "to": "0xRecipient",
+    "tokenId": "1"
+  }'
+
+# The history will show price as "0.0" for this transfer
+curl http://localhost:3000/api/items/1/history
 ```
 
 ---

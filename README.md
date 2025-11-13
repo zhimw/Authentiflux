@@ -168,6 +168,8 @@ The API server will start on `http://localhost:3000` with the following endpoint
 | POST | `/api/items/mint` | Mint new authenticated item |
 | GET | `/api/items/verify/:chipId` | Verify item by chip ID |
 | GET | `/api/items/:tokenId` | Get item details by token ID |
+| POST | `/api/items/transfer` | Transfer item with price recording |
+| GET | `/api/items/:tokenId/history` | Get transfer history for item |
 | POST | `/api/verifiers/authorize` | Authorize a verifier |
 | GET | `/api/verifiers/:address` | Check verifier authorization |
 
@@ -223,6 +225,25 @@ curl http://localhost:3000/api/items/verify/NFC-1234567890
 
 ```bash
 curl http://localhost:3000/api/items/1
+```
+
+**Transfer Item (with price):**
+
+```bash
+curl -X POST http://localhost:3000/api/items/transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from": "0xCurrentOwnerAddress",
+    "to": "0xNewOwnerAddress",
+    "tokenId": "1",
+    "price": "2.5"
+  }'
+```
+
+**Get Transfer History:**
+
+```bash
+curl http://localhost:3000/api/items/1/history
 ```
 
 ## Verifying Items
@@ -366,10 +387,21 @@ Authentiflux/
    - View full provenance history
 
 5. **Resale Transaction**
-   - Transfer NFT to buyer's wallet
+   ```bash
+   curl -X POST http://localhost:3000/api/items/transfer \
+     -H "Content-Type: application/json" \
+     -d '{
+       "from": "0xSellerAddress",
+       "to": "0xBuyerAddress",
+       "tokenId": "1",
+       "price": "15000"
+     }'
+   ```
+   - Transfer NFT to buyer's wallet with price recorded
    - Physical item and digital passport move together
-   - Blockchain automatically updates ownership
+   - Blockchain automatically updates ownership with timestamp
    - Complete transparency and trust
+   - Full price history maintained on-chain
 
 ## Network Information
 

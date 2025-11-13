@@ -6,11 +6,14 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
+    "test:transfer": "hardhat test test/LuxuryGoodsNFT.transfer.test.js",
     "deploy:amoy": "hardhat run scripts/deploy.js --network amoy",
     "deploy:localhost": "hardhat run scripts/deploy.js --network localhost",
     "node": "hardhat node",
     "backend": "node backend/server.js",
-    "backend:dev": "nodemon backend/server.js"
+    "backend:dev": "nodemon backend/server.js",
+    "demo:transfer": "hardhat run scripts/transfer-test.js --network localhost",
+    "demo:mint": "hardhat run scripts/mint-test.js --network localhost"
   },
   "keywords": [
     "blockchain",
