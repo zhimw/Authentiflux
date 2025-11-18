@@ -7,7 +7,7 @@ import { API_BASE_URL } from '../config/contract';
  */
 export const useAPI = (endpoint, dependencies = []) => {
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -26,6 +26,11 @@ export const useAPI = (endpoint, dependencies = []) => {
 
     if (endpoint) {
       fetchData();
+    } else {
+      // Reset state when endpoint is null/empty
+      setLoading(false);
+      setData(null);
+      setError(null);
     }
   }, [endpoint, ...dependencies]);
 
