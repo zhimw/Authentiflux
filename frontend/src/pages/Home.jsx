@@ -1,10 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAccount } from 'wagmi';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useContractInfo } from '../hooks/useAPI';
+import { useIsVerifier } from '../hooks/useContract';
 
 const Home = () => {
-  const { isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  const { data: isVerifier } = useIsVerifier(address);
   const { data: contractInfo, loading } = useContractInfo();
 
   return (
@@ -24,7 +28,7 @@ const Home = () => {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
             <Link
               to="/verify"
               className="bg-luxury-gold hover:bg-luxury-darkGold text-white font-semibold px-8 py-3 rounded-lg transition-colors"
@@ -39,11 +43,28 @@ const Home = () => {
                 My Items
               </Link>
             ) : (
-              <button className="bg-gray-800 hover:bg-gray-900 text-white font-semibold px-8 py-3 rounded-lg transition-colors">
+              <button
+                type="button"
+                onClick={openConnectModal}
+                disabled={!openConnectModal}
+                className="bg-gray-800 hover:bg-gray-900 text-white font-semibold px-8 py-3 rounded-lg transition-colors disabled:opacity-50"
+              >
                 Connect Wallet to Start
               </button>
             )}
           </div>
+
+          {/* Logged-in role status */}
+          {isConnected && (
+            <div className="mb-12">
+              <p className="text-sm text-gray-600">
+                You are logged in as:{' '}
+                <span className="font-semibold">
+                  {isVerifier ? 'Verifier (can mint new authenticated items)' : 'Collector (can hold and transfer items)'}
+                </span>
+              </p>
+            </div>
+          )}
 
           {/* Stats */}
           {!loading && contractInfo && (
