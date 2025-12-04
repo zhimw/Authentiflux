@@ -22,6 +22,38 @@ AuthentiFlux is a decentralized platform that uses NFT technology to create digi
 - **Blockchain Library**: Ethers.js v6
 - **Styling**: Tailwind CSS
 
+## 💡 How It Works
+
+### Architecture Overview
+
+```
+Frontend (React) ←→ Backend API (Express) ←→ Smart Contract (Solidity) ←→ Blockchain
+```
+
+### Backend (API Server)
+
+- Connects to the blockchain using **Ethers.js**
+- Provides **REST API endpoints** for the frontend
+- Handles contract interactions: minting, verification, transfers
+- Manages wallet transactions and signs them with private key
+- Acts as a bridge between the web app and blockchain
+
+### Frontend (Web Application)
+
+- **React** app with wallet connection via **RainbowKit**
+- Connects directly to blockchain for **reading** data (view items, check ownership)
+- Calls backend API for **writing** operations (mint, transfer)
+- Displays item details, ownership history, and authentication status
+- Provides user-friendly interface for all blockchain interactions
+
+### Smart Contract (Blockchain)
+
+- **ERC-721 NFT** standard for unique luxury items
+- Each NFT represents one authenticated luxury good
+- Stores: brand, model, serial number, chip ID, verifier, verification date
+- Tracks complete transfer history with timestamps and prices
+- Immutable record - once minted, authentication data cannot be changed
+
 ## 📁 Project Structure
 
 ```
