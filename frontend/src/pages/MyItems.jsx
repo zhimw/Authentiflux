@@ -54,6 +54,7 @@ const MyItems = () => {
                 tokenId: i,
                 ...itemData.details,
                 owner: itemData.owner,
+                image: itemData.image,
               });
             }
           } catch (err) {
@@ -151,6 +152,7 @@ const MyItems = () => {
                 chipId={item.chipId}
                 verificationDate={item.verificationDate}
                 owner={item.owner}
+                image={item.image}
               />
             ))}
           </div>

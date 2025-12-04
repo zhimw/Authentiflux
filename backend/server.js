@@ -185,11 +185,16 @@ app.get("/api/items/verify/:chipId", async (req, res) => {
 
     // Get item details
     const itemDetails = await contract.getItemDetails(tokenId);
+    const tokenURI = await contract.tokenURI(tokenId);
+    
+    // Parse tokenURI to extract metadata (including image)
+    const metadata = parseTokenURI(tokenURI);
 
     res.json({
       authenticated: true,
       tokenId: tokenId.toString(),
       owner,
+      image: metadata?.image || null,
       details: {
         brand: itemDetails.brand,
         model: itemDetails.model,
@@ -204,6 +209,23 @@ app.get("/api/items/verify/:chipId", async (req, res) => {
   }
 });
 
+// Helper function to parse tokenURI and extract metadata
+function parseTokenURI(tokenURI) {
+  try {
+    // Check if it's a data URI (base64 encoded JSON)
+    if (tokenURI.startsWith('data:application/json;base64,')) {
+      const base64Data = tokenURI.split(',')[1];
+      const jsonString = Buffer.from(base64Data, 'base64').toString('utf-8');
+      return JSON.parse(jsonString);
+    }
+    // If it's a regular URL, return null (would need to fetch it)
+    return null;
+  } catch (error) {
+    console.warn('Failed to parse tokenURI:', error.message);
+    return null;
+  }
+}
+
 // Get item details by token ID
 app.get("/api/items/:tokenId", async (req, res) => {
   try {
@@ -217,10 +239,14 @@ app.get("/api/items/:tokenId", async (req, res) => {
     const owner = await contract.ownerOf(tokenId);
     const tokenURI = await contract.tokenURI(tokenId);
 
+    // Parse tokenURI to extract metadata (including image)
+    const metadata = parseTokenURI(tokenURI);
+
     res.json({
       tokenId,
       owner,
       tokenURI,
+      image: metadata?.image || null,
       details: {
         brand: itemDetails.brand,
         model: itemDetails.model,

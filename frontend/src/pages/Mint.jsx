@@ -15,6 +15,7 @@ const Mint = () => {
     model: '',
     serialNumber: '',
     chipId: '',
+    image: '',
   });
 
   const [minting, setMinting] = useState(false);
@@ -44,6 +45,7 @@ const Mint = () => {
         model: '',
         serialNumber: '',
         chipId: '',
+        image: '',
       });
     }
   };
@@ -196,6 +198,24 @@ const Mint = () => {
               />
               <p className="text-xs text-gray-500 mt-1">
                 Unique identifier from the NFC/QR chip
+              </p>
+            </div>
+
+            {/* Image URL */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Item Image URL
+              </label>
+              <input
+                type="url"
+                name="image"
+                value={formData.image}
+                onChange={handleChange}
+                placeholder="https://example.com/image.jpg"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-luxury-gold"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                URL to an image of the item (optional but recommended)
               </p>
             </div>
 

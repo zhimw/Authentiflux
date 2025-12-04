@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAccount } from 'wagmi';
 import { useItemDetailsAPI, useTransferHistoryAPI } from '../hooks/useAPI';
-import { transferItem } from '../hooks/useAPI';
+import { useContractWrite } from '../hooks/useContract';
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../config/contract';
+import { parseEther } from 'viem';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Alert from '../components/Alert';
 import { truncateAddress, formatDate, formatEth, copyToClipboard } from '../utils/helpers';
@@ -16,9 +18,10 @@ const ItemDetail = () => {
   const [showTransferForm, setShowTransferForm] = useState(false);
   const [transferTo, setTransferTo] = useState('');
   const [transferPrice, setTransferPrice] = useState('');
-  const [transferring, setTransferring] = useState(false);
   const [transferResult, setTransferResult] = useState(null);
   const [copied, setCopied] = useState(false);
+
+  const { writeContract, isPending, isConfirming, isConfirmed, error } = useContractWrite();
 
   const isOwner = itemData?.owner?.toLowerCase() === address?.toLowerCase();
 
@@ -32,27 +35,68 @@ const ItemDetail = () => {
 
   const handleTransfer = async (e) => {
     e.preventDefault();
-    setTransferring(true);
+    
+    if (!address || !isOwner) {
+      setTransferResult({
+        success: false,
+        error: 'You must be the owner to transfer this item'
+      });
+      return;
+    }
+
+    if (!transferTo) {
+      setTransferResult({
+        success: false,
+        error: 'Please enter a recipient address'
+      });
+      return;
+    }
+
     setTransferResult(null);
 
-    const result = await transferItem({
-      from: address,
-      to: transferTo,
-      tokenId,
-      price: transferPrice || '0',
-    });
+    try {
+      const priceInWei = transferPrice ? parseEther(transferPrice) : 0n;
+      // eslint-disable-next-line no-undef
+      const tokenIdBigInt = BigInt(tokenId);
+      
+      await writeContract({
+        address: CONTRACT_ADDRESS,
+        abi: CONTRACT_ABI,
+        functionName: 'transferWithPrice',
+        args: [address, transferTo, tokenIdBigInt, priceInWei],
+      });
+    } catch (err) {
+      setTransferResult({
+        success: false,
+        error: err.message || 'Failed to initiate transfer'
+      });
+    }
+  };
 
-    setTransferResult(result);
-    setTransferring(false);
-
-    if (result.success) {
+  // Handle transaction confirmation
+  useEffect(() => {
+    if (isConfirmed) {
+      setTransferResult({
+        success: true,
+        message: 'Transfer successful!'
+      });
       setShowTransferForm(false);
       setTransferTo('');
       setTransferPrice('');
       // Refresh page after 2 seconds
       setTimeout(() => window.location.reload(), 2000);
     }
-  };
+  }, [isConfirmed]);
+
+  // Handle transaction errors
+  useEffect(() => {
+    if (error) {
+      setTransferResult({
+        success: false,
+        error: error.message || 'Transaction failed'
+      });
+    }
+  }, [error]);
 
   if (itemLoading) {
     return (
@@ -97,6 +141,20 @@ const ItemDetail = () => {
               ✓ Authenticated
             </span>
           </div>
+
+          {/* Item Image */}
+          {itemData.image && (
+            <div className="mb-8 rounded-lg overflow-hidden bg-gray-100 max-w-2xl">
+              <img
+                src={itemData.image}
+                alt={`${itemData.details.brand} ${itemData.details.model}`}
+                className="w-full h-auto object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
 
           {/* Details Grid */}
           <div className="grid md:grid-cols-2 gap-8 mb-8">
@@ -218,10 +276,10 @@ const ItemDetail = () => {
                 <div className="flex space-x-4">
                   <button
                     type="submit"
-                    disabled={transferring}
+                    disabled={isPending || isConfirming}
                     className="flex-1 bg-luxury-gold hover:bg-luxury-darkGold text-white font-semibold px-6 py-3 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    {transferring ? 'Transferring...' : 'Confirm Transfer'}
+                    {isPending ? 'Waiting for wallet...' : isConfirming ? 'Confirming...' : 'Confirm Transfer'}
                   </button>
                   <button
                     type="button"

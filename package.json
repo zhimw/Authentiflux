@@ -13,7 +13,7 @@
     "backend": "node backend/server.js",
     "backend:dev": "nodemon backend/server.js",
     "demo:transfer": "hardhat run scripts/transfer-test.js --network localhost",
-    "demo:mint": "hardhat run scripts/mint-test.js --network localhost"
+    "demo:mint": "hardhat run scripts/mint·-test.js --network localhost"
   },
   "keywords": [
     "blockchain",

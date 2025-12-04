@@ -2,10 +2,24 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { truncateAddress, formatDate } from '../utils/helpers';
 
-const ItemCard = ({ tokenId, brand, model, serialNumber, chipId, verificationDate, owner }) => {
+const ItemCard = ({ tokenId, brand, model, serialNumber, chipId, verificationDate, owner, image }) => {
   return (
     <Link to={`/item/${tokenId}`}>
       <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-6 cursor-pointer border border-gray-200 hover:border-luxury-gold">
+        {/* Image */}
+        {image && (
+          <div className="mb-4 rounded-lg overflow-hidden bg-gray-100 aspect-square">
+            <img
+              src={image}
+              alt={`${brand} ${model}`}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+        
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">

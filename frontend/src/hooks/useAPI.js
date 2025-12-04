@@ -70,7 +70,14 @@ export const useContractInfo = () => {
  */
 export const mintItem = async (itemData) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/api/items/mint`, itemData);
+    // Extract image from itemData and include it in metadata
+    const { image, ...rest } = itemData;
+    const payload = {
+      ...rest,
+      ...(image && { metadata: { image } })
+    };
+    
+    const response = await axios.post(`${API_BASE_URL}/api/items/mint`, payload);
     return { success: true, data: response.data };
   } catch (error) {
     return { 

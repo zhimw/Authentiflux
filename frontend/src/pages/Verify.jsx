@@ -92,6 +92,34 @@ const Verify = () => {
                 <p className="text-gray-600">Token ID: #{data.tokenId}</p>
               </div>
 
+              {/* Coin Spinning Animation with Image */}
+              {data.image && (
+                <div className="coin-container">
+                  <div className="coin">
+                    <div className="coin-face coin-front">
+                      <img
+                        src={data.image}
+                        alt={`${data.details.brand} ${data.details.model}`}
+                        className="coin-image"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                    <div className="coin-face coin-back">
+                      <img
+                        src={data.image}
+                        alt={`${data.details.brand} ${data.details.model}`}
+                        className="coin-image"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="text-sm font-semibold text-gray-500 mb-2">
