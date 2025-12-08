@@ -175,7 +175,9 @@ describe("LuxuryGoodsNFT - Transfer with Price Recording", function () {
     });
 
     it("Should record timestamps for each transfer", async function () {
-      const beforeTime = Math.floor(Date.now() / 1000);
+      // Get block timestamp before transaction
+      const beforeBlock = await ethers.provider.getBlock('latest');
+      const beforeTime = beforeBlock.timestamp;
       
       await luxuryGoodsNFT.connect(buyer1).transferWithPrice(
         buyer1.address,
@@ -184,12 +186,15 @@ describe("LuxuryGoodsNFT - Transfer with Price Recording", function () {
         ethers.parseEther("1.0")
       );
 
-      const afterTime = Math.floor(Date.now() / 1000);
+      // Get block timestamp after transaction
+      const afterBlock = await ethers.provider.getBlock('latest');
+      const afterTime = afterBlock.timestamp;
+      
       const history = await luxuryGoodsNFT.getTransferHistory(1);
       
       const transferTime = Number(history[1].timestamp);
       expect(transferTime).to.be.at.least(beforeTime);
-      expect(transferTime).to.be.at.most(afterTime + 2);
+      expect(transferTime).to.be.at.most(afterTime);
     });
 
     it("Should not allow getting history for non-existent token", async function () {
