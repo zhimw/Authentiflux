@@ -4,8 +4,12 @@ require("dotenv").config();
 async function main() {
   console.log("🧪 Testing NFT Minting...\n");
 
-  const [deployer] = await ethers.getSigners();
-  console.log("👤 Using account:", deployer.address);
+  // Based on frontend/backend setup:
+  // Account 0 = verifier (minter)
+  // Account 1 = item owner
+  const [verifier, owner1] = await ethers.getSigners();
+  console.log("👤 Verifier (Account 0):", verifier.address);
+  console.log("👤 Owner 1 (Account 1):", owner1.address);
 
   // Get contract address from environment or deployment file
   let contractAddress = process.env.CONTRACT_ADDRESS;
@@ -39,7 +43,7 @@ async function main() {
 
   // Test data
   const testItem = {
-    owner: deployer.address,
+    owner: owner1.address, // Mint to Owner 1
     brand: "Louis Vuitton",
     model: "Neverfull MM",
     serialNumber: "FL4198",
@@ -52,16 +56,16 @@ async function main() {
   console.log("   Model:", testItem.model);
   console.log("   Serial Number:", testItem.serialNumber);
   console.log("   Chip ID:", testItem.chipId);
-  console.log("   Owner:", testItem.owner);
+  console.log("   Owner (Account 1):", testItem.owner);
   console.log("");
 
-  // Check if deployer is authorized
-  const isAuthorized = await contract.authorizedVerifiers(deployer.address);
-  console.log("🔐 Deployer authorized as verifier:", isAuthorized);
+  // Check if verifier (account 0) is authorized
+  const isAuthorized = await contract.authorizedVerifiers(verifier.address);
+  console.log("🔐 Verifier (Account 0) authorized:", isAuthorized);
 
   if (!isAuthorized) {
-    console.log("⚠️  Deployer not authorized. Attempting to authorize...");
-    const authTx = await contract.setVerifierAuthorization(deployer.address, true);
+    console.log("⚠️  Verifier not authorized. Attempting to authorize...");
+    const authTx = await contract.setVerifierAuthorization(verifier.address, true);
     await authTx.wait();
     console.log("✅ Deployer authorized");
   }
